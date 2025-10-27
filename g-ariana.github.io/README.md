@@ -1,1 +1,0 @@
-# g-ariana.github.io
