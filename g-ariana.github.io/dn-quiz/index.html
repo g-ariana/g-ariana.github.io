@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Nebraskan Halloween Quiz</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for answer buttons */
+        .answer-btn {
+            transition: all 0.3s ease;
+        }
+        .answer-btn.correct {
+            background-color: #16a34a; /* Tailwind green-600 */
+            border-color: #15803d; /* Tailwind green-700 */
+            color: white;
+        }
+        .answer-btn.incorrect {
+            background-color: #dc2626; /* Tailwind red-600 */
+            border-color: #b91c1c; /* Tailwind red-700 */
+            color: white;
+        }
+        .answer-btn:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+        .answer-btn:not(:disabled):hover {
+            background-color: #ea580c; /* Tailwind orange-600 */
+            border-color: #c2410c; /* Tailwind orange-700 */
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-gray-800 shadow-xl rounded-lg w-full max-w-lg mx-auto overflow-hidden">
+
+        <!-- Header -->
+        <div class="p-6 border-b border-gray-700">
+            <h1 class="text-2xl md:text-3xl font-bold text-center text-orange-500">
+                Daily Nebraskan Halloween Quiz 🎃
+            </h1>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="p-8 text-center">
+            <p class="text-lg text-gray-300 mb-8">
+                Test your knowledge of this year's Halloween trends and events!
+            </p>
+            <button id="start-button" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors duration-300">
+                Start Quiz
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="p-8 hidden">
+            <!-- Progress and Question Text -->
+            <div class="mb-6">
+                <div id="progress-text" class="text-sm font-semibold text-orange-400 mb-2">Question 1 of 5</div>
+                <h2 id="question-text" class="text-xl md:text-2xl font-semibold text-gray-100" style="min-height: 6rem;">
+                    Loading question...
+                </h2>
+            </div>
+
+            <!-- Answer Options -->
+            <div id="answer-options-container" class="flex flex-col space-y-3 mb-6">
+                <!-- Answer buttons will be dynamically inserted here -->
+            </div>
+
+            <!-- Feedback Message Box -->
+            <div id="message-box" class="text-center font-semibold text-lg mb-4" style="min-height: 1.75rem;">
+                <!-- Feedback (Correct/Wrong) appears here -->
+            </div>
+
+            <!-- Next Button -->
+            <button id="next-button" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors duration-300 hidden">
+                Next
+            </button>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="p-8 text-center hidden">
+            <h2 class="text-3xl font-bold text-orange-500 mb-4">Quiz Complete!</h2>
+            <p id="score-text" class="text-2xl text-gray-100 mb-8">
+                You got 0 out of 5 correct!
+            </p>
+            <button id="restart-button" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors duration-300">
+                Play Again
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- QUIZ DATA ---
+        // All questions from the JSON file are embedded here
+        const allQuestions = [
+            { "question": "According to the 'slays and nays' column, what costume does the author suggest as an alternative to a devil?", "type": "Multiple Choice", "options": ["A ghost", "An angel", "Little Red Riding Hood", "A witch"], "answer": "Little Red Riding Hood" },
+            { "question": "In the 'Kiss, Marry, Kill' trio costume, what color dress does the person representing 'marry' typically wear?", "type": "Multiple Choice", "options": ["Red", "White", "Black", "Blue"], "answer": "White" },
+            { "question": "Which of these TV show characters does the 'slays and nays' author specifically say they *want* to see?", "type": "Multiple Choice", "options": ["Wednesday Addams", "Steve from 'Minecraft'", "Happy Gilmore", "Carmy from 'The Bear'"], "answer": "Carmy from 'The Bear'" },
+            { "question": "The 'slays and nays' author mentions dressing up as Priscilla Presley from a specific scene. What was she wearing?", "type": "Multiple Choice", "options": ["A red dress and white gloves", "A black and white polka dot set", "A wedding dress", "A 'Kiss, Marry, Kill' outfit"], "answer": "A black and white polka dot set" },
+            { "question": "Which musician does the 'slays and nays' author suggest dressing as from their 'Subway' music video?", "type": "Multiple Choice", "options": ["Sabrina Carpenter", "Kendrick Lamar", "Chappell Roan", "Charli xcx"], "answer": "Chappell Roan" },
+            { "question": "Which venue is hosting a 'Hallow's Eve College Night' on October 30th?", "type": "Multiple Choice", "options": ["Bodega's Alley", "Pinnacle Bank Arena", "O'Leaver's Pub", "Duffy's Tavern"], "answer": "Duffy's Tavern" },
+            { "question": "Which venue will host a costume contest and announce a raffle winner every 30 minutes?", "type": "Multiple Choice", "options": ["Bodega's Alley", "Duffy's Tavern", "Pinnacle Bank Arena", "O'Leaver's Pub"], "answer": "Bodega's Alley" },
+            { "question": "The show featuring A Day to Remember and Yellowcard at Pinnacle Bank Arena is for what ages?", "type": "Multiple Choice", "options": ["18+ only", "21+ only", "All ages", "16+ only"], "answer": "All ages" },
+            { "question": "According to the 'budget' article, what two items are needed to dress as Steve from 'Minecraft'?", "type": "Multiple Choice", "options": ["A black shirt and a faux fur blanket", "A Boston Bruins jersey and a golf club", "A teal sweater and jeans", "An orange hoodie and a brown hat"], "answer": "A teal sweater and jeans" },
+            { "question": "What two items are recommended in the 'budget' article for a recognizable 'Happy Gilmore' costume?", "type": "Multiple Choice", "options": ["A red flannel and black sunglasses", "A white dress shirt and a golf club", "A teal sweater and jeans", "A Boston Bruins jersey and a golf club"], "answer": "A Boston Bruins jersey and a golf club" },
+            { "question": "True or False: The 'slays and nays' author first saw the 'Kiss, Marry, Kill' costume in 2022.", "type": "True/False", "options": ["True", "False"], "answer": "True" },
+            { "question": "True or False: The 'slays and nays' author is a 'Labubu hater' and thinks they are weird.", "type": "True/False", "options": ["True", "False"], "answer": "True" },
+            { "question": "True or False: The 'slays and nays' author believes that guys wearing just a jersey for Halloween is creative.", "type": "True/False", "options": ["True", "False"], "answer": "False" },
+            { "question": "True or False: The 'slays and nays' author believes pop culture costumes like 'KPop Demon Hunters' are timeless and can be worn year after year.", "type": "True/False", "options": ["True", "False"], "answer": "False" },
+            { "question": "True or False: The 'slays and nays' author uses Pinterest and TikTok to help brainstorm costume ideas.", "type": "True/False", "options": ["True", "False"], "answer": "True" },
+            { "question": "True or False: The show at Duffy’s Tavern on Halloween night (Oct. 31) is free for attendees 18 and older.", "type": "True/False", "options": ["True", "False"], "answer": "False" },
+            { "question": "True or False: The show at O’Leaver’s Pub featuring Leila’s Rose and Infielder is located in Lincoln.", "type": "True/False", "options": ["True", "False"], "answer": "False" },
+            { "question": "True or False: According to the 'budget' article, the 'Minecraft' movie releasing this year brings the 'Minecraft' costume back to relevance.", "type": "True/False", "options": ["True", "False"], "answer": "True" },
+            { "question": "True or False: To dress as Count Orlok from 'Nosferatu,' the 'budget' article suggests draping a faux fur blanket over a black shirt and pants.", "type": "True/False", "options": ["True", "False"], "answer": "True" },
+            { "question": "True or False: For the 'Smiling Friends' duo costume, the 'budget' article states that the hardest item to find would be a brown hat for Charlie.", "type": "True/False", "options": ["True", "False"], "answer": "False" }
+        ];
+
+        // --- DOM ELEMENTS ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+
+        const startButton = document.getElementById('start-button');
+        const nextButton = document.getElementById('next-button');
+        const restartButton = document.getElementById('restart-button');
+
+        const progressText = document.getElementById('progress-text');
+        const questionText = document.getElementById('question-text');
+        const answerOptionsContainer = document.getElementById('answer-options-container');
+        const messageBox = document.getElementById('message-box');
+        const scoreText = document.getElementById('score-text');
+
+        // --- QUIZ STATE ---
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        const totalQuestions = 5;
+
+        // --- FUNCTIONS ---
+
+        /**
+         * Shuffles an array in place using the Fisher-Yates algorithm
+         * @param {Array} array - The array to shuffle
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        /**
+         * Selects 5 random questions from the main list
+         */
+        function selectRandomQuestions() {
+            const shuffled = [...allQuestions]; // Create a copy
+            shuffleArray(shuffled);
+            currentQuestions = shuffled.slice(0, totalQuestions);
+        }
+
+        /**
+         * Starts the quiz
+         */
+        function startGame() {
+            startScreen.classList.add('hidden');
+            resultsScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+
+            score = 0;
+            currentQuestionIndex = 0;
+            selectRandomQuestions();
+            displayQuestion();
+        }
+
+        /**
+         * Displays the current question and its options
+         */
+        function displayQuestion() {
+            // Reset for the new question
+            answerOptionsContainer.innerHTML = '';
+            messageBox.textContent = '';
+            messageBox.className = 'text-center font-semibold text-lg mb-4'; // Reset color
+            nextButton.classList.add('hidden');
+
+            // Get current question
+            const question = currentQuestions[currentQuestionIndex];
+            
+            // Update UI
+            progressText.textContent = `Question ${currentQuestionIndex + 1} of ${totalQuestions}`;
+            questionText.textContent = question.question;
+
+            // Create answer buttons
+            question.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'answer-btn w-full text-left p-4 rounded-lg border-2 border-gray-600 bg-gray-700 text-gray-200 font-semibold';
+                
+                button.addEventListener('click', () => {
+                    selectAnswer(option, question.answer, button);
+                });
+                
+                answerOptionsContainer.appendChild(button);
+            });
+        }
+
+        /**
+         * Handles the user's answer selection
+         */
+        function selectAnswer(selectedOption, correctAnswer, buttonElement) {
+            // Disable all buttons after an answer is selected
+            const buttons = answerOptionsContainer.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                // Highlight the correct answer even if the wrong one was chosen
+                if (btn.textContent === correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            if (selectedOption === correctAnswer) {
+                score++;
+                messageBox.textContent = 'Correct!';
+                messageBox.classList.add('text-green-500');
+            } else {
+                buttonElement.classList.add('incorrect'); // Mark the wrong one
+                messageBox.textContent = 'Wrong!';
+                messageBox.classList.add('text-red-500');
+            }
+
+            // Show the next button
+            nextButton.classList.remove('hidden');
+        }
+
+        /**
+         * Moves to the next question or shows the results
+         */
+        function handleNextButton() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < totalQuestions) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        /**
+         * Displays the final score and results screen
+         */
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            
+            scoreText.textContent = `You got ${score} out of ${totalQuestions} correct!`;
+        }
+
+        // --- EVENT LISTENERS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            startButton.addEventListener('click', startGame);
+            nextButton.addEventListener('click', handleNextButton);
+            restartButton.addEventListener('click', startGame);
+        });
+
+    </script>
+</body>
+</html>
