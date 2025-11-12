@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNL Temple Building Changes</title>
+    <style>
+        /* --- Basic Page Styles --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1.5rem;
+            box-sizing: border-box;
+        }
+
+        .content-wrapper {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        /* --- Image Slider Styles --- */
+
+        /* Container holds everything and maintains aspect ratio */
+        .comparison-slider {
+            /* We set position with a CSS variable, defaulting to 50% */
+            --slider-position: 50%;
+
+            position: relative;
+            width: 100%;
+            /* 4:3 aspect ratio. Adjust if your images are different. */
+            aspect-ratio: 4 / 3; 
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: #eee; /* Fallback if images are slow */
+            
+            /* Improve performance during drag */
+            will-change: transform;
+
+            /* Prevent accidental text selection */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Both images are positioned absolutely to stack */
+        .comparison-slider img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Cover container, may crop a bit */
+            object-fit: cover; 
+            /* Don't let images capture mouse events */
+            pointer-events: none; 
+        }
+
+        /* The "before" image (2014) is on top */
+        .comparison-slider .before-image {
+            /* This clips the "before" image to reveal the "after" image underneath */
+            /* We only show the image from the left edge to the slider position */
+            clip-path: inset(0 calc(100% - var(--slider-position)) 0 0);
+            z-index: 1; /* On top of the after-image */
+        }
+        
+        .comparison-slider .after-image {
+             z-index: 0; /* Below the before-image */
+        }
+
+        /* The slider handle is the interactive element */
+        .slider-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            /* Positioned based on the CSS variable */
+            left: var(--slider-position);
+            transform: translateX(-50%);
+            z-index: 10;
+            width: 44px; /* Make a wide, easy-to-grab touch target */
+            cursor: ew-resize;
+            /* Allow events to pass through the empty parts to the container */
+            pointer-events: none; 
+        }
+
+        /* The visual line in the middle of the handle */
+        .slider-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            /* Enable grabbing the line itself */
+            pointer-events: auto; 
+        }
+
+        /* The circular grabber with arrows */
+        .slider-grabber {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            box-sizing: border-box;
+            /* Enable grabbing the circle */
+            pointer-events: auto; 
+        }
+        
+        .slider-grabber svg {
+            width: 16px;
+            height: 16px;
+            color: #333;
+            stroke-width: 3;
+        }
+
+        /* Mobile specific: make handle easier to see */
+        @media (max-width: 600px) {
+            .slider-grabber {
+                width: 50px;
+                height: 50px;
+            }
+             h1 {
+                font-size: 1.5rem;
+            }
+            p {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="content-wrapper">
+        <h1>Check out the changes to UNL's Temple Building</h1>
+        <p>Click and drag the slider, or tap and swipe on the image, to compare the building from October 2014 to March 2025.</p>
+
+        <!-- The Image Comparison Slider -->
+        <div class="comparison-slider" id="comparisonSlider">
+            <!-- 2014 "Before" image (on top) -->
+            <img src="campusoctober2014.jpg" alt="Temple Building in October 2014" class="before-image">
+            
+            <!-- 2025 "After" image (on bottom) -->
+            <img src="campusmarch2025.jpg" alt="Temple Building in March 2025" class="after-image">
+
+            <!-- Slider Handle -->
+            <div class="slider-handle" id="sliderHandle" role="slider" aria-label="Image comparison slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+                <div class="slider-line"></div>
+                <div class="slider-grabber">
+                    <!-- Left Arrow SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                    <!-- Right Arrow SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <!-- End of Image Comparison Slider -->
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sliderContainer = document.getElementById('comparisonSlider');
+            const sliderHandle = document.getElementById('sliderHandle');
+            
+            let isDragging = false;
+
+            // Function to update the slider position
+            const updateSliderPosition = (clientX) => {
+                // Get the bounding box of the container
+                const rect = sliderContainer.getBoundingClientRect();
+                
+                // Calculate the horizontal position (x) relative to the container
+                let x = clientX - rect.left;
+                
+                // Clamp x within the container bounds
+                x = Math.max(0, Math.min(x, rect.width));
+                
+                // Calculate the percentage
+                const percentage = (x / rect.width) * 100;
+                
+                // Update the CSS variable on the container
+                sliderContainer.style.setProperty('--slider-position', `${percentage}%`);
+                
+                // Update ARIA attribute for accessibility
+                sliderHandle.setAttribute('aria-valuenow', percentage.toFixed(0));
+            };
+
+            // --- Event Listeners ---
+
+            // Start dragging (for mouse)
+            const startDrag = (e) => {
+                isDragging = true;
+                // e.preventDefault() here would prevent text selection, but we use CSS 'user-select: none' instead
+            };
+
+            // Start dragging (for touch)
+            const startTouch = (e) => {
+                isDragging = true;
+                // Prevent page scroll while swiping
+                e.preventDefault(); 
+            };
+            
+            // Move slider (for mouse and touch)
+            const moveDrag = (e) => {
+                if (!isDragging) return;
+                
+                // Get clientX from mouse or touch event
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                updateSliderPosition(clientX);
+            };
+
+            // Stop dragging (for mouse and touch)
+            const stopDrag = () => {
+                isDragging = false;
+            };
+
+            // --- Attach Listeners ---
+
+            // We attach the "start" events to the *entire container*
+            // This allows users to click/tap *anywhere* to move the slider
+            sliderContainer.addEventListener('mousedown', startDrag);
+            sliderContainer.addEventListener('touchstart', startTouch, { passive: false });
+
+            // We attach the "move" and "end" events to the *document*
+            // This allows the user to drag outside the container bounds
+            // and still have the slider follow their cursor/finger
+            document.addEventListener('mousemove', moveDrag);
+            document.addEventListener('touchmove', moveDrag, { passive: false });
+            
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchend', stopDrag);
+            document.addEventListener('touchcancel', stopDrag);
+
+            // Set initial position just in case
+            updateSliderPosition(sliderContainer.getBoundingClientRect().width / 2);
+        });
+    </script>
+
+</body>
+</html>
